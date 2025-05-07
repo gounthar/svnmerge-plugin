@@ -21,7 +21,6 @@ import hudson.scm.SvnClientManager;
 import hudson.scm.SubversionSCM.ModuleLocation;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.util.IOException2;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
@@ -68,8 +67,8 @@ import static org.tmatesoft.svn.core.wc.SVNRevision.*;
  * @author Kohsuke Kawaguchi
  */
 public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> implements Serializable {
-    private static final long serialVersionUID = -1L; 
-    
+    private static final long serialVersionUID = -1L;
+
     /**
      * Upstream job name.
      */
@@ -117,7 +116,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
         if(location==null)  return null;
         return location.getSVNURL();
     }
-    
+
     public AbstractProject<?,?> getOwner() {
         return owner;
     }
@@ -162,7 +161,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
         final ISVNAuthenticationProvider provider = svn.createAuthenticationProvider(getOwner(), svn.getLocations()[0]);
 
         final ModuleLocation upstreamLocation = getUpstreamSubversionLocation();
-        
+
         AbstractBuild build = owner.getSomeBuildWithWorkspace();
         if (build == null) {
             final PrintStream logger = listener.getLogger();
@@ -233,7 +232,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
 						}
                     }
                 } catch (SVNException e) {
-                    throw new IOException2("Failed to merge", e);
+                    throw new IOException("Failed to merge", e);
                 }
             }
         });
@@ -243,7 +242,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
      * Represents the result of integration.
      */
     public static class IntegrationResult implements Serializable {
-        private static final long serialVersionUID = -1L; 
+        private static final long serialVersionUID = -1L;
 
         /**
          * The merge commit in the upstream where the integration is made visible to the upstream.
@@ -288,7 +287,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
         final ISVNAuthenticationProvider provider = svn.createAuthenticationProvider(getUpstreamProject(), svn.getLocations()[0]);
 
         final ModuleLocation upstreamLocation = getUpstreamSubversionLocation();
-        
+
         return owner.getModuleRoot().act(new FileCallable<IntegrationResult>() {
             public IntegrationResult invoke(File mr, VirtualChannel virtualChannel) throws IOException {
                 try {
@@ -322,7 +321,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
                             public void handleLogEntry(SVNLogEntry e) throws SVNException {
                                 if (!changesFound.booleanValue()) {
                                 	String message = e.getMessage();
-                                	
+
                                     if (!message.startsWith(RebaseAction.COMMIT_MESSAGE_PREFIX)
                                     		&& !message.startsWith(IntegrateAction.COMMIT_MESSAGE_PREFIX)) {
                                     	changesFound.setValue(true);
@@ -336,7 +335,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
 	                        return new IntegrationResult(0,mergeRev);
                         }
                     }
-                    
+
                     logger.println("Switching to the upstream (" + up+")");
                     SVNUpdateClient uc = cm.getUpdateClient();
                     uc.doSwitch(mr, up, HEAD, HEAD, INFINITY, false, false);
@@ -409,7 +408,7 @@ public class FeatureBranchProperty extends JobProperty<AbstractProject<?,?>> imp
                     // -1 is returned if there was no commit, so normalize that to 0
                     return new IntegrationResult(Math.max(0,trunkCommit),mergeRev);
                 } catch (SVNException e) {
-                    throw new IOException2("Failed to merge", e);
+                    throw new IOException("Failed to merge", e);
                 }
             }
         });

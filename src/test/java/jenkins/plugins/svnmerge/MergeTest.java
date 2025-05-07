@@ -8,7 +8,6 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.scm.SubversionSCM;
-import hudson.util.IOException2;
 import org.apache.commons.io.FileUtils;
 import org.jvnet.hudson.test.HudsonHomeLoader.CopyExisting;
 import org.jvnet.hudson.test.HudsonTestCase;
@@ -223,7 +222,7 @@ public class MergeTest extends HudsonTestCase {
     /**
      * Add a file and then commit the directory.
      */
-    private void commitAndUpdate(BuildListener listener, FilePath dir, FilePath newFile) throws IOException2 {
+    private void commitAndUpdate(BuildListener listener, FilePath dir, FilePath newFile) throws IOException {
         try {
             SVNClientManager cm = SubversionSCM.createSvnClientManager(p);
 
@@ -233,7 +232,7 @@ public class MergeTest extends HudsonTestCase {
 
             cm.getUpdateClient().doUpdate(new File(dir.getRemote()), HEAD, INFINITY, false, true);
         } catch (SVNException x) {
-            throw new IOException2("failed to commit",x);
+            throw new IOException("failed to commit",x);
         }
     }
 
